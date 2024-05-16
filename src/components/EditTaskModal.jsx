@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 
@@ -8,12 +7,28 @@ const EditTaskModal = ({ task, onClose, onSave }) => {
   const [dueTime, setDueTime] = useState(task.dueDate ? format(new Date(task.dueDate), 'HH:mm') : '');
   const [importance, setImportance] = useState(task.importance);
   const [recurring, setRecurring] = useState(task.recurring);
+  const [steps, setSteps] = useState(task.steps || [{ name: '', completed: false }]);
   const [visible, setVisible] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     setVisible(true);
   }, []);
+
+  const handleStepChange = (index, value) => {
+    const newSteps = [...steps];
+    newSteps[index].name = value;
+    setSteps(newSteps);
+  };
+
+  const handleAddStep = () => {
+    setSteps([...steps, { name: '', completed: false }]);
+  };
+
+  const handleRemoveStep = (index) => {
+    const newSteps = steps.filter((_, stepIndex) => stepIndex !== index);
+    setSteps(newSteps);
+  };
 
   const handleSubmit = () => {
     if (!taskName.trim()) {
@@ -32,11 +47,13 @@ const EditTaskModal = ({ task, onClose, onSave }) => {
       dueDate: dueDate && dueTime ? format(new Date(`${dueDate}T${dueTime}`), 'yyyy-MM-dd HH:mm') : '',
       importance,
       recurring,
+      steps: steps.filter(step => step.name.trim()),
+      progress: steps.length ? (steps.filter(step => step.completed).length / steps.length) * 100 : 0,
     };
 
     onSave(updatedTask);
     setVisible(false);
-    setTimeout(onClose, 300); 
+    setTimeout(onClose, 300);
   };
 
   const handleClose = () => {
@@ -89,15 +106,44 @@ const EditTaskModal = ({ task, onClose, onSave }) => {
           <option value="Low">Low</option>
         </select>
         {error === 'Importance level is required' && <p className="text-red-500 text-sm mb-2">{error}</p>}
-        <label className="flex items-center mb-4 text-gray-900 dark:text-gray-300">
-          <input
-            type="checkbox"
-            className="form-checkbox mr-2"
-            checked={recurring}
-            onChange={(e) => setRecurring(e.target.checked)}
-          />
-          Recurring Task
-        </label>
+        <select
+          className="form-select mt-1 block w-full mb-4 transition-colors duration-500 ease-in-out bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-300"
+          value={recurring}
+          onChange={(e) => setRecurring(e.target.value)}
+        >
+          <option value="none">No Recurrence</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+        <div className="mb-4">
+          <h3 className="text-lg mb-2 text-gray-900 dark:text-gray-300">Steps</h3>
+          {steps.map((step, index) => (
+            <div key={index} className="flex items-center mb-2">
+              <input
+                type="text"
+                className="form-input mt-1 block w-full mb-1 transition-colors duration-500 ease-in-out bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-300"
+                placeholder={`Step ${index + 1}`}
+                value={step.name}
+                onChange={(e) => handleStepChange(index, e.target.value)}
+              />
+              {index > 0 && (
+                <button
+                  className="bg-red-500 text-white px-2 py-1 rounded ml-2 transition duration-300 hover:bg-red-700"
+                  onClick={() => handleRemoveStep(index)}
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          ))}
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded mt-2 transition duration-300 hover:bg-blue-700"
+            onClick={handleAddStep}
+          >
+            Add Step
+          </button>
+        </div>
         <div className="flex justify-end">
           <button
             className="bg-red-500 text-white px-4 py-2 rounded mr-2 transition duration-300 hover:bg-red-700"
