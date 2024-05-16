@@ -5,7 +5,7 @@ import EditTaskModal from '../components/EditTaskModal';
 import TaskList from '../components/TaskList';
 import FilterSidebar from '../components/FilterSidebar';
 import { loadTasks, saveTasks } from '../utils/localStorage';
-import { addDays, addWeeks, addMonths, format } from 'date-fns';
+import { addDays, addWeeks, addMonths, format, parseISO, isBefore, isAfter } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 
 const Home = ({ toggleDarkMode }) => {
@@ -16,6 +16,7 @@ const Home = ({ toggleDarkMode }) => {
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [darkMode, setDarkMode] = useState(false);
+  const [dateRange, setDateRange] = useState({ start: '', end: '' }); 
 
   useEffect(() => {
     saveTasks(tasks);
@@ -90,10 +91,21 @@ const Home = ({ toggleDarkMode }) => {
     }
   };
 
+  const handleDateRangeChange = (field, value) => {
+    setDateRange((prevDateRange) => ({
+      ...prevDateRange,
+      [field]: value,
+    }));
+  };
+
   const filteredTasks = tasks.filter((task) => {
-    if (filter !== 'all' && task.importance.toLowerCase() !== filter) return false;
-    if (searchQuery && !task.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-    return true;
+    const matchesImportance = filter === 'all' || task.importance.toLowerCase() === filter;
+    const matchesQuery = searchQuery === '' || task.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesDateRange =
+      (!dateRange.start || isAfter(parseISO(task.dueDate), parseISO(dateRange.start))) &&
+      (!dateRange.end || isBefore(parseISO(task.dueDate), parseISO(dateRange.end)));
+
+    return matchesImportance && matchesQuery && matchesDateRange;
   });
 
   const handleToggleDarkMode = () => {
@@ -119,7 +131,7 @@ const Home = ({ toggleDarkMode }) => {
           <input
             type="text"
             className="form-input mt-1 block w-full"
-            placeholder="Search note..."
+            placeholder="Search tasks..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -129,6 +141,28 @@ const Home = ({ toggleDarkMode }) => {
           >
             <FiPlus />
           </button>
+        </div>
+        <div className="flex space-x-2 items-center mb-6">
+          <div className="flex flex-col">
+            <label htmlFor="start-date" className="text-gray-900 dark:text-gray-300">From</label>
+            <input
+              id="start-date"
+              type="date"
+              className="form-input mt-1 block"
+              value={dateRange.start}
+              onChange={(e) => handleDateRangeChange('start', e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col">
+            <label htmlFor="end-date" className="text-gray-900 dark:text-gray-300">To</label>
+            <input
+              id="end-date"
+              type="date"
+              className="form-input mt-1 block"
+              value={dateRange.end}
+              onChange={(e) => handleDateRangeChange('end', e.target.value)}
+            />
+          </div>
         </div>
         <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 w-full">
           <FilterSidebar filter={filter} setFilter={setFilter} />

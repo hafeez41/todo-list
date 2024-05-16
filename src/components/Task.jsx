@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { FiEdit, FiTrash } from 'react-icons/fi';
 
 const Task = ({ task, onEdit, onDelete, onToggleComplete, onToggleCompleteStep }) => {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(false); 
 
   const getFormattedDate = (dateString) => {
     try {
@@ -49,7 +49,7 @@ const Task = ({ task, onEdit, onDelete, onToggleComplete, onToggleCompleteStep }
             <div className={task.completed ? 'line-through' : ''}>
               <h3 className="text-xl">{task.name}</h3>
               <p className="text-gray-600">{getFormattedDate(task.dueDate)}</p>
-              {task.recurring && <p className="text-blue-500">Recurring</p>}
+              {task.recurring !== 'none' && <p className="text-blue-500">{`Recurring: ${task.recurring}`}</p>}
             </div>
           </div>
         </div>

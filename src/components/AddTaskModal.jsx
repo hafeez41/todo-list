@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
@@ -8,8 +7,8 @@ const AddTaskModal = ({ onClose, onSave }) => {
   const [dueDate, setDueDate] = useState('');
   const [dueTime, setDueTime] = useState('');
   const [importance, setImportance] = useState('');
-  const [recurring, setRecurring] = useState('none');
-  const [steps, setSteps] = useState([{ name: '', completed: false }]); // New state for steps
+  const [recurring, setRecurring] = useState('none'); 
+  const [steps, setSteps] = useState([{ name: '', completed: false }]); 
   const [visible, setVisible] = useState(false);
   const [error, setError] = useState('');
 
@@ -46,7 +45,7 @@ const AddTaskModal = ({ onClose, onSave }) => {
     const newTask = {
       id: uuidv4(),
       name: taskName,
-      dueDate: dueDate && dueTime ? format(new Date(`${dueDate}T${dueTime}`), 'yyyy-MM-dd HH:mm') : '',
+      dueDate: dueDate ? (dueTime ? format(new Date(`${dueDate}T${dueTime}`), 'yyyy-MM-dd HH:mm') : format(new Date(dueDate), 'yyyy-MM-dd')) : '',
       importance,
       recurring,
       completed: false,
@@ -58,7 +57,7 @@ const AddTaskModal = ({ onClose, onSave }) => {
 
     onSave(newTask);
     setVisible(false);
-    setTimeout(onClose, 300); 
+    setTimeout(onClose, 300);
   };
 
   const handleClose = () => {
@@ -89,13 +88,17 @@ const AddTaskModal = ({ onClose, onSave }) => {
           type="date"
           className="form-input mt-1 block w-full mb-2 transition-colors duration-500 ease-in-out bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-300"
           value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
+          onChange={(e) => {
+            setDueDate(e.target.value);
+            if (!e.target.value) setDueTime('');
+          }}
         />
         <input
           type="time"
           className="form-input mt-1 block w-full mb-4 transition-colors duration-500 ease-in-out bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-300"
           value={dueTime}
           onChange={(e) => setDueTime(e.target.value)}
+          disabled={!dueDate}
         />
         <select
           className="form-select mt-1 block w-full mb-4 transition-colors duration-500 ease-in-out bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-300"

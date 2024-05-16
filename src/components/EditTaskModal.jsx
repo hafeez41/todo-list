@@ -4,9 +4,9 @@ import { format } from 'date-fns';
 const EditTaskModal = ({ task, onClose, onSave }) => {
   const [taskName, setTaskName] = useState(task.name);
   const [dueDate, setDueDate] = useState(task.dueDate ? format(new Date(task.dueDate), 'yyyy-MM-dd') : '');
-  const [dueTime, setDueTime] = useState(task.dueDate ? format(new Date(task.dueDate), 'HH:mm') : '');
+  const [dueTime, setDueTime] = useState(task.dueDate && task.dueDate.includes(' ') ? format(new Date(task.dueDate), 'HH:mm') : '');
   const [importance, setImportance] = useState(task.importance);
-  const [recurring, setRecurring] = useState(task.recurring);
+  const [recurring, setRecurring] = useState(task.recurring || 'none'); 
   const [steps, setSteps] = useState(task.steps || [{ name: '', completed: false }]);
   const [visible, setVisible] = useState(false);
   const [error, setError] = useState('');
@@ -44,16 +44,16 @@ const EditTaskModal = ({ task, onClose, onSave }) => {
     const updatedTask = {
       ...task,
       name: taskName,
-      dueDate: dueDate && dueTime ? format(new Date(`${dueDate}T${dueTime}`), 'yyyy-MM-dd HH:mm') : '',
+      dueDate: dueDate ? (dueTime ? format(new Date(`${dueDate}T${dueTime}`), 'yyyy-MM-dd HH:mm') : format(new Date(dueDate), 'yyyy-MM-dd')) : '',
       importance,
       recurring,
-      steps: steps.filter(step => step.name.trim()),
+      steps: steps.filter(step => step.name.trim()), 
       progress: steps.length ? (steps.filter(step => step.completed).length / steps.length) * 100 : 0,
     };
 
     onSave(updatedTask);
     setVisible(false);
-    setTimeout(onClose, 300);
+    setTimeout(onClose, 300); 
   };
 
   const handleClose = () => {
@@ -84,13 +84,17 @@ const EditTaskModal = ({ task, onClose, onSave }) => {
           type="date"
           className="form-input mt-1 block w-full mb-2 transition-colors duration-500 ease-in-out bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-300"
           value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
+          onChange={(e) => {
+            setDueDate(e.target.value);
+            if (!e.target.value) setDueTime('');
+          }}
         />
         <input
           type="time"
           className="form-input mt-1 block w-full mb-4 transition-colors duration-500 ease-in-out bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-300"
           value={dueTime}
           onChange={(e) => setDueTime(e.target.value)}
+          disabled={!dueDate}
         />
         <select
           className="form-select mt-1 block w-full mb-4 transition-colors duration-500 ease-in-out bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-300"
